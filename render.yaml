@@ -5,7 +5,7 @@
 
 databases:
   - name: hse-tracker-db
-    plan: starter
+    plan: 0.1c-256mb
     databaseName: hse_tracker
     user: hse_tracker
 
@@ -26,14 +26,6 @@ services:
       - key: APPROVAL_TOKEN_SECRET
         generateValue: true
       - key: APP_BASE_URL
-        sync: false
-      - key: MS_TENANT_ID
-        sync: false
-      - key: MS_CLIENT_ID
-        sync: false
-      - key: MS_CLIENT_SECRET
-        sync: false
-      - key: MS_REDIRECT_URI
         sync: false
       - key: MANAGER_EMAIL
         value: m.shiraz@site-technology.com

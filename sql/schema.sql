@@ -5,13 +5,24 @@ CREATE TABLE IF NOT EXISTS users (
   id            SERIAL PRIMARY KEY,
   email         TEXT UNIQUE NOT NULL,
   name          TEXT NOT NULL,
-  ms_oid        TEXT UNIQUE,                 -- Microsoft account object id, set on first real sign-in
   role          TEXT NOT NULL DEFAULT 'pending',   -- 'pending' | 'officer' | 'manager'
   status        TEXT NOT NULL DEFAULT 'pending',   -- 'pending' | 'approved' | 'denied'
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   approved_at   TIMESTAMPTZ,
   approved_by   TEXT
 );
+
+-- One-time sign-in links (magic links). A row is created when someone asks to
+-- sign in with an email address, and consumed the moment they click it.
+CREATE TABLE IF NOT EXISTS magic_link_tokens (
+  id            SERIAL PRIMARY KEY,
+  email         TEXT NOT NULL,
+  token         TEXT UNIQUE NOT NULL,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  consumed_at   TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_magic_tokens_email ON magic_link_tokens(email);
 
 CREATE TABLE IF NOT EXISTS tasks (
   id               SERIAL PRIMARY KEY,

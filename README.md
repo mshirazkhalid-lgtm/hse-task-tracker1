@@ -1,51 +1,30 @@
 # HSE Task Tracker
 
 A web app for tracking HSE task progress with:
-- Sign-in restricted to your company's Microsoft 365 account (Entra ID)
-- A request-and-approve flow: new sign-ups wait for the manager's approval (one-click
-  Approve/Deny links by email, plus an in-app "Pending requests" panel)
-- Enforced manager/officer separation: officers only ever see their own tasks
-- Auto-assignment: a task the manager assigns shows up in the officer's list immediately
-- PDF export (print-to-PDF), CSV export
-- A daily email digest of overdue / due-soon / not-started tasks
+- **Sign-in with just an email address** — no password, no separate account to create.
+  Enter your email, get a one-time link, click it, you're in. Works with any email,
+  personal or company.
+- A request-and-approve flow: a new sign-in waits for the manager's approval (one-click
+  Approve/Deny links by email, plus an in-app "Pending requests" panel) before they can
+  see any task data.
+- Enforced manager/officer separation: officers only ever see their own tasks.
+- Auto-assignment: a task the manager assigns shows up in the officer's list immediately.
+- PDF export (print-to-PDF), CSV export.
+- A daily email digest of overdue / due-soon / not-started tasks.
 - Real background push notifications (installable as a desktop/mobile app, notifications
-  work even when the browser tab is closed)
-- The 148 tasks from the original monthly report, imported automatically on first run
+  work even when the browser tab is closed).
+- The 148 tasks from the original monthly report, imported automatically on first run.
 
 This was built as the practical alternative to a native Windows application — this
 **is** a real, independently hosted piece of software with its own database and sign-in,
 just delivered as an installable web app instead of a `.exe`.
 
-## What you need before deploying (about 20–30 minutes, one-time)
+## What you need before deploying (about 10–15 minutes, one-time)
 
-You'll need four things. None of these can be set up by anyone except your own
-Microsoft 365 admin and whoever holds your hosting account — that's simply who has the
-credentials.
+Just two things now — no identity-provider setup required, since sign-in doesn't depend
+on Microsoft, Google, or anything else external.
 
-### 1. A Microsoft Entra ID app registration (for "Sign in with Microsoft")
-
-In the [Microsoft Entra admin center](https://entra.microsoft.com) (or your Azure
-portal → *Microsoft Entra ID* → *App registrations*):
-
-1. **New registration**
-   - Name: `HSE Task Tracker`
-   - Supported account types: **Accounts in this organizational directory only**
-     (this is what restricts sign-in to just your company — no outside Microsoft
-     accounts can ever sign in)
-   - Redirect URI: leave blank for now, you'll add it after step 2 below (it needs your
-     deployed URL first)
-2. After creating it, note down from the **Overview** page:
-   - **Application (client) ID** → this is `MS_CLIENT_ID`
-   - **Directory (tenant) ID** → this is `MS_TENANT_ID`
-3. Go to **Certificates & secrets** → **New client secret** → copy the *value*
-   immediately (it's only shown once) → this is `MS_CLIENT_SECRET`
-4. Go to **API permissions** → confirm `User.Read` (delegated, under Microsoft Graph)
-   is present — it's added by default
-5. Once you have your deployed URL (step 3 below), come back to **Authentication** →
-   **Add a platform** → **Web** → add Redirect URI:
-   `https://<your-app-url>/auth/callback` → Save
-
-### 2. A place to host it
+### 1. A place to host it
 
 The code is ready to deploy to [Render.com](https://render.com) using the included
 `render.yaml` blueprint (New → Blueprint → point it at this code in a Git repo). Render
@@ -53,16 +32,17 @@ gives you the web service and a managed Postgres database together, with HTTPS o
 the box. Any other Node.js host works too (Railway, Azure App Service, a VPS) — the app
 is a standard Express app, nothing Render-specific except `render.yaml` itself.
 
-### 3. An email account to send from
+### 2. An email account to send from
 
-Approval requests and the daily digest are sent by email. Easiest options:
+**This one is required, not optional** — sign-in itself works by emailing people a
+one-time link, so without this configured, nobody can sign in at all (not just "no
+notifications"). Easiest options:
 - Your existing Microsoft 365 mailbox (`smtp.office365.com`, port `587` — you may need
   an *app password* if the mailbox has MFA on, or SMTP AUTH enabled by your admin), or
 - A free transactional email service like [Resend](https://resend.com) or
-  [Brevo](https://www.brevo.com) — sign up, they give you SMTP credentials directly, no
-  Microsoft config needed.
+  [Brevo](https://www.brevo.com) — sign up, they give you SMTP credentials directly.
 
-### 4. Generate two secrets
+### 3. Generate two secrets
 
 Run these once (locally, or in Render's shell after first deploy) and save the output:
 
@@ -79,21 +59,28 @@ npm run generate-vapid   # prints VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY, for pu
 3. In the Render dashboard, open the web service → **Environment** → fill in the values
    marked `sync: false` in `render.yaml` (see `.env.example` for the full list and what
    each one means): `APP_BASE_URL` (your Render URL, e.g.
-   `https://hse-tracker.onrender.com`), the four `MS_*` values from step 1 above,
-   `MAIL_*` values from step 3, and the two `VAPID_*` keys from step 4.
-   `SESSION_SECRET` and `APPROVAL_TOKEN_SECRET` are auto-generated by the blueprint —
-   you don't need to set those yourself, unless you generated your own and prefer to
-   use those.
-4. Go back to your Entra ID app registration and add the real Redirect URI now that you
-   know your URL (step 1.5 above).
-5. Redeploy (Render does this automatically when you save environment variables).
-6. Open the URL and sign in with `m.shiraz@site-technology.com` via Microsoft — this
-   exact email (set as `MANAGER_EMAIL`, already defaulted in `render.yaml`) is
-   automatically the Manager, no approval needed, and the 148 historical tasks will
-   already be sitting in that account the first time the database boots up.
-7. Have each HSE officer open the same URL and sign in with their own Microsoft 365
-   account. They'll see "request sent" until you approve them — either from the email
-   that lands in your inbox, or from the **Pending requests** button in the app itself.
+   `https://hse-tracker.onrender.com`), the `MAIL_*` values from step 2 above, and the
+   two `VAPID_*` keys from step 3. `SESSION_SECRET` and `APPROVAL_TOKEN_SECRET` are
+   auto-generated by the blueprint — you don't need to set those yourself.
+4. Redeploy (Render does this automatically when you save environment variables).
+5. Open the URL and enter `m.shiraz@site-technology.com` to sign in — this exact email
+   (set as `MANAGER_EMAIL`, already defaulted in `render.yaml`) is automatically the
+   Manager, no approval needed, and the 148 historical tasks will already be sitting in
+   that account the first time the database boots up.
+6. Have each HSE officer open the same URL and sign in with whatever email address they
+   want to use (their company one, or a personal one — either works). They'll see
+   "check your email," then "request sent" once they click their link, until you
+   approve them — either from the email that lands in your inbox, or from the
+   **Pending requests** button in the app itself.
+
+### A note on who can sign up
+
+Because sign-in only needs an email address, anyone who knows the app's URL can *request*
+a sign-in link — but the approval step is still the real gate: nobody sees any task data
+until you explicitly approve their account, so an uninvited request just sits pending
+(or you deny it) with no access granted. If you want to restrict things further — say,
+only allow specific email addresses or a specific domain to even request a link — that's
+a small addition I can make if you want it.
 
 ## Local development
 
@@ -113,6 +100,15 @@ data/           The 148 historical tasks, imported automatically on first boot
 scripts/        One-off helper scripts (VAPID key generation)
 render.yaml     One-click deploy blueprint for Render.com
 ```
+
+## How sign-in works
+
+`POST /auth/request-link` takes an email, creates a random one-time token (20-minute
+expiry, single-use, stored in the `magic_link_tokens` table), and emails a link
+containing it. `GET /auth/magic?token=...` verifies the token, marks it consumed, and
+either finds the matching user or creates one (as "pending," unless the email matches
+`MANAGER_EMAIL`). A 60-second cooldown per email prevents someone from spamming
+themselves (or someone else) with repeated emails.
 
 ## How manager/officer separation works
 

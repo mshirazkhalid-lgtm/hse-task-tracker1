@@ -13,8 +13,21 @@
 
 <div id="loginView" class="centered-card" hidden>
   <h1>HSE Task Tracker</h1>
-  <p>Sign in with your company Microsoft 365 account to continue.</p>
-  <a class="btn btn-primary" href="/auth/login" style="width:100%; margin-top:10px;">Sign in with Microsoft</a>
+  <p>Enter your email and we'll send you a one-time link to sign in — no password needed.</p>
+  <form id="loginForm" style="margin-top:14px; text-align:left;">
+    <div class="field">
+      <label for="loginEmail">Email address</label>
+      <input id="loginEmail" type="email" placeholder="you@example.com" required/>
+    </div>
+    <button class="btn btn-primary" type="submit" id="loginSubmitBtn" style="width:100%; margin-top:12px;">Send me a sign-in link</button>
+    <p class="muted" id="loginError" style="font-size:12.5px; margin-top:8px;" hidden></p>
+  </form>
+</div>
+
+<div id="linkSentView" class="centered-card" hidden>
+  <h1>Check your email</h1>
+  <p>We sent a sign-in link to <b id="linkSentEmail"></b>. Click it to continue — it works once and expires in 20 minutes.</p>
+  <button class="btn btn-ghost" id="linkSentBackBtn" style="margin-top:10px;">Use a different email</button>
 </div>
 
 <div id="pendingView" class="centered-card" hidden>

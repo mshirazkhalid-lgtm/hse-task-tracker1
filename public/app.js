@@ -41,12 +41,44 @@
   }
 
   function showView(name) {
-    ["loginView", "pendingView", "deniedView", "appView"].forEach(function (id) { $(id).hidden = true; });
+    ["loginView", "linkSentView", "pendingView", "deniedView", "appView"].forEach(function (id) { $(id).hidden = true; });
     if (name === "login") $("loginView").hidden = false;
+    if (name === "linkSent") $("linkSentView").hidden = false;
     if (name === "pending") $("pendingView").hidden = false;
     if (name === "denied") $("deniedView").hidden = false;
     if (name === "app") $("appView").hidden = false;
   }
+
+  // ---------- login (magic link) ----------
+  var loginForm = $("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var email = $("loginEmail").value.trim();
+      var btn = $("loginSubmitBtn"), errEl = $("loginError");
+      errEl.hidden = true;
+      btn.disabled = true; btn.textContent = "Sending…";
+      try {
+        var res = await fetch("/auth/request-link", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email })
+        });
+        if (!res.ok) {
+          var body = {}; try { body = await res.json(); } catch (e2) {}
+          throw new Error(body.error === "invalid_email" ? "That doesn't look like a valid email address." : "Something went wrong. Please try again.");
+        }
+        $("linkSentEmail").textContent = email;
+        showView("linkSent");
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.hidden = false;
+      } finally {
+        btn.disabled = false; btn.textContent = "Send me a sign-in link";
+      }
+    });
+  }
+  var linkSentBackBtn = $("linkSentBackBtn");
+  if (linkSentBackBtn) linkSentBackBtn.addEventListener("click", function () { showView("login"); });
 
   // ---------- rendering ----------
   function distinctValues(field) {

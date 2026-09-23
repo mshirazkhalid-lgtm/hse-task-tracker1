@@ -11,7 +11,7 @@ const { router: tasksRouter } = require("./tasks");
 const { requireAuth } = require("./middleware");
 const digest = require("./digest");
 
-const REQUIRED_ENV = ["DATABASE_URL", "SESSION_SECRET", "APPROVAL_TOKEN_SECRET", "APP_BASE_URL", "MS_TENANT_ID", "MS_CLIENT_ID", "MS_CLIENT_SECRET", "MS_REDIRECT_URI"];
+const REQUIRED_ENV = ["DATABASE_URL", "SESSION_SECRET", "APPROVAL_TOKEN_SECRET", "APP_BASE_URL", "MANAGER_EMAIL", "MAIL_HOST"];
 const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
 if (missing.length) {
   console.error("Missing required environment variables:", missing.join(", "));

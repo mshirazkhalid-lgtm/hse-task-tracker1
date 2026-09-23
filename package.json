@@ -2,7 +2,7 @@
   "name": "hse-task-tracker",
   "version": "1.0.0",
   "private": true,
-  "description": "HSE Task Tracker — web app with Microsoft sign-in, manager/officer separation, and push notifications.",
+  "description": "HSE Task Tracker — web app with email magic-link sign-in, manager/officer separation, and push notifications.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -12,7 +12,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@azure/msal-node": "^2.13.1",
     "connect-pg-simple": "^9.0.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
