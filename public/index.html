@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HSE Task Tracker</title>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="icon" href="/icons/icon-192.png"/>
+<meta name="theme-color" content="#2b5f6e"/>
+<link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+
+<div id="loginView" class="centered-card" hidden>
+  <h1>HSE Task Tracker</h1>
+  <p>Sign in with your company Microsoft 365 account to continue.</p>
+  <a class="btn btn-primary" href="/auth/login" style="width:100%; margin-top:10px;">Sign in with Microsoft</a>
+</div>
+
+<div id="pendingView" class="centered-card" hidden>
+  <h1>Request sent</h1>
+  <p>You're signed in as <b id="pendingName"></b>. Your HSE manager has been notified and needs to approve
+  your access before you can use the tracker. You can close this tab — we'll be in touch.</p>
+  <a class="btn btn-ghost" href="/auth/logout" style="margin-top:10px;">Sign out</a>
+</div>
+
+<div id="deniedView" class="centered-card" hidden>
+  <h1>Access not granted</h1>
+  <p>Your HSE manager has not approved access for this account. Contact them directly if you think this is a mistake.</p>
+  <a class="btn btn-ghost" href="/auth/logout" style="margin-top:10px;">Sign out</a>
+</div>
+
+<div id="appView" hidden>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">HSE</div>
+        <div>
+          <div class="brand-title">HSE Task Tracker</div>
+          <div class="brand-sub" id="brandSub">Monthly progress &amp; QHSE compliance log</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="adminPendingBtn" hidden>Pending requests</button>
+        <button class="btn btn-ghost btn-sm" id="alertsBtn">🔔 Enable alerts</button>
+        <button class="btn btn-ghost btn-sm" id="exportCsvBtn">CSV</button>
+        <button class="btn btn-ghost btn-sm" id="exportPdfBtn">PDF</button>
+        <div class="viewer">
+          <span class="viewer-name" id="viewerName"></span>
+          <span class="role-pill" id="viewerRole"></span>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="/auth/logout">Sign out</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="notice" id="topNotice" hidden><span id="topNoticeText"></span></div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search task, entity, name…"/>
+      <select id="entityFilter"><option value="">All entities</option></select>
+      <select id="officerFilter" hidden><option value="">Everyone</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary btn-sm" id="newTaskBtn">+ New task</button>
+    </div>
+
+    <div class="table-scroll" id="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="sn" style="width:44px;">SN</th>
+            <th data-sort="description">Task</th>
+            <th data-sort="entity">Entity</th>
+            <th class="officer-col" data-sort="ownerName" hidden>Officer</th>
+            <th data-sort="plannedStart">Planned start</th>
+            <th data-sort="dueDate">Due</th>
+            <th data-sort="completionPct">Progress</th>
+            <th data-sort="status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="emptyState" hidden>No tasks match these filters yet.</div>
+    </div>
+
+    <footer>Every task keeps a full edit history for traceability. SN numbers below 149 are imported from the original monthly report.</footer>
+  </div>
+</div>
+
+<div id="printReport">
+  <h1 id="prTitle">HSE Task Tracker</h1>
+  <div class="pr-meta" id="prMeta"></div>
+  <div class="pr-stats" id="prStats"></div>
+  <table>
+    <thead><tr><th>SN</th><th>Task</th><th>Entity</th><th>Officer</th><th>Planned start</th><th>Due</th><th>Completion</th><th>Status</th><th>Remarks</th></tr></thead>
+    <tbody id="prBody"></tbody>
+  </table>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="panel" id="formPanel">
+  <div class="panel-head">
+    <h2 id="formTitle">New task</h2>
+    <button class="panel-close" id="formClose">&times;</button>
+  </div>
+  <div class="panel-body">
+    <div class="field">
+      <label for="f_description">Task description</label>
+      <textarea id="f_description" rows="2" placeholder="e.g. Fire drill – 8th Floor"></textarea>
+    </div>
+    <div class="field" id="assigneeField">
+      <label for="f_assignee">Assign to officer</label>
+      <select id="f_assignee"><option value="">Keep on my own list</option></select>
+    </div>
+    <div class="field">
+      <label for="f_entity">Entity / division</label>
+      <input id="f_entity" list="entityList" placeholder="STIS, STLC…"/>
+      <datalist id="entityList"></datalist>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="f_plannedStart">Planned start</label><input id="f_plannedStart" type="date"/></div>
+      <div class="field"><label for="f_dueDate">Due / target date</label><input id="f_dueDate" type="date"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="f_actualStart">Actual start</label><input id="f_actualStart" type="date"/></div>
+      <div class="field"><label for="f_actualEnd">Actual end</label><input id="f_actualEnd" type="date"/></div>
+    </div>
+    <div class="field">
+      <label for="f_completion">Completion — <span id="f_completionLabel">0%</span></label>
+      <input id="f_completion" type="range" min="0" max="100" step="5" value="0"/>
+    </div>
+    <div class="field">
+      <label for="f_remarks">Remarks (reason for delay, etc.)</label>
+      <textarea id="f_remarks" rows="2" placeholder="Optional"></textarea>
+    </div>
+    <div id="historyBlock" hidden>
+      <label style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">History</label>
+      <div id="historyList" style="margin-top:8px; max-height:220px; overflow-y:auto;"></div>
+    </div>
+  </div>
+  <div class="panel-foot">
+    <button class="btn btn-ghost" id="formCancel">Cancel</button>
+    <button class="btn btn-primary" id="formSave">Save task</button>
+  </div>
+</div>
+
+<div class="scrim" id="adminScrim"></div>
+<div class="panel" id="adminPanel">
+  <div class="panel-head"><h2>Pending requests</h2><button class="panel-close" id="adminClose">&times;</button></div>
+  <div class="panel-body" id="adminBody">
+    <p class="muted" id="adminEmpty">No pending requests.</p>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "HSE Task Tracker",
+  "short_name": "HSE Tracker",
+  "description": "Monthly progress & QHSE compliance task tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f3",
+  "theme_color": "#2b5f6e",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

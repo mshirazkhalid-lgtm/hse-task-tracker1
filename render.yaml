@@ -1,0 +1,55 @@
+# Render.com "Blueprint" — lets you deploy the web service + database together
+# from this repo with one click (New + -> Blueprint, point it at your repo).
+# Values marked sync: false are left for you to fill in from the Render
+# dashboard after the first deploy (they're secrets / deployment-specific).
+
+databases:
+  - name: hse-tracker-db
+    plan: starter
+    databaseName: hse_tracker
+    user: hse_tracker
+
+services:
+  - type: web
+    name: hse-tracker
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hse-tracker-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: APPROVAL_TOKEN_SECRET
+        generateValue: true
+      - key: APP_BASE_URL
+        sync: false
+      - key: MS_TENANT_ID
+        sync: false
+      - key: MS_CLIENT_ID
+        sync: false
+      - key: MS_CLIENT_SECRET
+        sync: false
+      - key: MS_REDIRECT_URI
+        sync: false
+      - key: MANAGER_EMAIL
+        value: m.shiraz@site-technology.com
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
